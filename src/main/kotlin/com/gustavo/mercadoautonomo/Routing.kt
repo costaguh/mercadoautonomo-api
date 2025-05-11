@@ -7,6 +7,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 import com.gustavo.mercadoautonomo.models.Venda
 import com.gustavo.mercadoautonomo.models.Produto
+import com.gustavo.mercadoautonomo.models.VendaResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
@@ -60,10 +61,10 @@ fun Application.configureRouting() {
         get("/vendas") {
             val listaDeVendas = transaction {
                 Vendas.selectAll().map {
-                    mapOf(
-                        "id" to it[Vendas.id],
-                        "produtos" to it[Vendas.produtos],
-                        "total" to it[Vendas.total]
+                    VendaResponse(
+                        id = it[Vendas.id],
+                        produtos = it[Vendas.produtos],
+                        total = it[Vendas.total]
                     )
                 }
             }
