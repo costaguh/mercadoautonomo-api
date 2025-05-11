@@ -1,6 +1,7 @@
 package com.gustavo.mercadoautonomo
 
 import com.gustavo.mercadoautonomo.models.Vendas
+import org.jetbrains.exposed.sql.selectAll
 import io.ktor.server.request.*
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -54,6 +55,20 @@ fun Application.configureRouting() {
             }
 
             call.respondText("Venda registrada com sucesso!", status = HttpStatusCode.Created)
+        }
+
+        get("/vendas") {
+            val listaDeVendas = transaction {
+                Vendas.selectAll().map {
+                    mapOf(
+                        "id" to it[Vendas.id],
+                        "produtos" to it[Vendas.produtos],
+                        "total" to it[Vendas.total]
+                    )
+                }
+            }
+
+            call.respond(listaDeVendas)
         }
     }
 }
