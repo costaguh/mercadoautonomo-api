@@ -1,5 +1,6 @@
 package com.gustavo
 
+import com.gustavo.mercadoautonomo.models.Venda
 import com.gustavo.mercadoautonomo.models.Produto
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -40,6 +41,16 @@ fun Application.configureRouting() {
             } else {
                 call.respondText("Produto não encontrado", status = HttpStatusCode.NotFound)
             }
+        }
+
+        post("/vendas") {
+            val venda = call.receive<Venda>()
+
+            println("Venda recebida:")
+            println("Produtos: ${venda.produtos.map { it.nome }}")
+            println("Total: R$ ${venda.total}")
+
+            call.respondText("Venda registrada com sucesso!", status = HttpStatusCode.Created)
         }
     }
 }
