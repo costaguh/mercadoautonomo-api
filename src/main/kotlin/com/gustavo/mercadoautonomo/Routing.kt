@@ -1,5 +1,9 @@
 package com.gustavo.mercadoautonomo
 
+import com.gustavo.mercadoautonomo.models.Vendas
+import io.ktor.server.request.*
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.transactions.transaction
 import com.gustavo.mercadoautonomo.models.Venda
 import com.gustavo.mercadoautonomo.models.Produto
 import io.ktor.http.*
@@ -39,9 +43,15 @@ fun Application.configureRouting() {
         post("/vendas") {
             val venda = call.receive<Venda>()
 
-            println("Venda recebida:")
-            println("Produtos: ${venda.produtos.map { it.nome }}")
-            println("Total: R$ ${venda.total}")
+            // Transforma lista de produtos em string (pode ser JSON futuramente)
+            val produtosStr = venda.produtos.joinToString(", ") { it.nome }
+
+            transaction {
+                Vendas.insert {
+                    it[produtos] = produtosStr
+                    it[total] = venda.total
+                }
+            }
 
             call.respondText("Venda registrada com sucesso!", status = HttpStatusCode.Created)
         }
