@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: mercadoautonomo-api
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    buildCommand: ./gradlew installDist
+    startCommand: ./bin/mercadoautonomo
