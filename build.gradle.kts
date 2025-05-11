@@ -30,4 +30,15 @@ dependencies {
     implementation(libs.logback.classic)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
+    // Exposed ORM
+    implementation("org.jetbrains.exposed:exposed-core:0.43.0")
+    implementation("org.jetbrains.exposed:exposed-dao:0.43.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.43.0")
+    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:0.43.0")
+
+// PostgreSQL driver
+    implementation("org.postgresql:postgresql:42.7.2")
+
+// Kotlin datetime (para datas no Exposed)
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 }
