@@ -33,7 +33,8 @@ fun Application.configureRouting() {
                         codigo = it[Produtos.codigo],
                         nome = it[Produtos.nome],
                         preco = it[Produtos.preco],
-                        imagem = it[Produtos.imagem]
+                        imagem = it[Produtos.imagem],
+                        quantidade = it[Produtos.quantidade]
                     )
                 }
             }
@@ -50,7 +51,8 @@ fun Application.configureRouting() {
                         codigo = it[Produtos.codigo],
                         nome = it[Produtos.nome],
                         preco = it[Produtos.preco],
-                        imagem = it[Produtos.imagem]
+                        imagem = it[Produtos.imagem],
+                        quantidade = it[Produtos.quantidade]
                     )
                 }
             }
@@ -60,11 +62,6 @@ fun Application.configureRouting() {
         // Adicionar produto novo
         post("/produtos") {
             val novoProduto = call.receive<Produto>()
-
-            if (novoProduto.codigo.isBlank() || novoProduto.nome.isBlank()) {
-                call.respond(HttpStatusCode.BadRequest, "Dados incompletos do produto.")
-                return@post
-            }
 
             val existe = transaction {
                 Produtos.select { Produtos.codigo eq novoProduto.codigo }.count() > 0
@@ -81,6 +78,7 @@ fun Application.configureRouting() {
                     it[nome] = novoProduto.nome
                     it[preco] = novoProduto.preco
                     it[imagem] = novoProduto.imagem
+                    it[quantidade] = novoProduto.quantidade
                 }
             }
 
@@ -97,6 +95,7 @@ fun Application.configureRouting() {
                     it[nome] = produtoAtualizado.nome
                     it[preco] = produtoAtualizado.preco
                     it[imagem] = produtoAtualizado.imagem
+                    it[quantidade] = produtoAtualizado.quantidade
                 }
             }
 
