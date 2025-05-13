@@ -11,13 +11,23 @@ fun Application.configureHTTP() {
     install(DefaultHeaders) {
         header("X-Engine", "Ktor") // will send this header with each response
     }
+
     install(CORS) {
         allowMethod(HttpMethod.Options)
+        allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
+
+        allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
         allowHeader("MyCustomHeader")
-        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+
+        allowCredentials = true
+
+        // ⚠️ Em produção, substitua por domínio fixo do front-end
+        allowHost("localhost:5173", schemes = listOf("http"))
+        allowHost("127.0.0.1:5173", schemes = listOf("http"))
     }
 }
