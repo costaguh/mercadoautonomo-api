@@ -36,9 +36,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.43.0")
     implementation("org.jetbrains.exposed:exposed-kotlin-datetime:0.43.0")
 
-// PostgreSQL driver
+    // PostgreSQL driver
     implementation("org.postgresql:postgresql:42.7.2")
 
-// Kotlin datetime (para datas no Exposed)
+    // Kotlin datetime (para datas no Exposed)
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 }

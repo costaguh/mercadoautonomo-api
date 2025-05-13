@@ -1,51 +1,125 @@
 package com.gustavo.mercadoautonomo
 
-import com.gustavo.mercadoautonomo.models.Vendas
-import org.jetbrains.exposed.sql.selectAll
-import io.ktor.server.request.*
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.transactions.transaction
-import com.gustavo.mercadoautonomo.models.Venda
-import com.gustavo.mercadoautonomo.models.Produto
-import com.gustavo.mercadoautonomo.models.VendaResponse
+import com.gustavo.mercadoautonomo.models.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Application.configureRouting() {
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
+            call.respondText(text = "Erro interno: $cause", status = HttpStatusCode.InternalServerError)
         }
     }
+
     routing {
         get("/") {
             call.respondText("Hello World!")
         }
+
+        // Buscar produto por código
         get("/produtos/{codigo}") {
-            val codigo = call.parameters["codigo"]
+            val codigo = call.parameters["codigo"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Código ausente")
 
-            val produtos = listOf(
-                Produto("7891000055123", "Pipoca Doce Nhac", 1.00, "pipoca.png"),
-                Produto("7896004007010", "Amendoim Japonês", 0.50, "amendoim.png")
-            )
+            val produto = transaction {
+                Produtos.select { Produtos.codigo eq codigo }.singleOrNull()?.let {
+                    Produto(
+                        codigo = it[Produtos.codigo],
+                        nome = it[Produtos.nome],
+                        preco = it[Produtos.preco],
+                        imagem = it[Produtos.imagem]
+                    )
+                }
+            }
 
-            val produto = produtos.find { it.codigo == codigo }
+            produto?.let { call.respond(it) }
+                ?: call.respond(HttpStatusCode.NotFound, "Produto não encontrado")
+        }
 
-            if (produto != null) {
-                call.respond(produto)
+        // Listar todos os produtos
+        get("/produtos") {
+            val produtos = transaction {
+                Produtos.selectAll().map {
+                    Produto(
+                        codigo = it[Produtos.codigo],
+                        nome = it[Produtos.nome],
+                        preco = it[Produtos.preco],
+                        imagem = it[Produtos.imagem]
+                    )
+                }
+            }
+            call.respond(produtos)
+        }
+
+        // Adicionar produto novo
+        post("/produtos") {
+            val novoProduto = call.receive<Produto>()
+
+            val existe = transaction {
+                Produtos.select { Produtos.codigo eq novoProduto.codigo }.count() > 0
+            }
+
+            if (existe) {
+                call.respond(HttpStatusCode.Conflict, "Produto com este código já existe.")
+                return@post
+            }
+
+            transaction {
+                Produtos.insert {
+                    it[codigo] = novoProduto.codigo
+                    it[nome] = novoProduto.nome
+                    it[preco] = novoProduto.preco
+                    it[imagem] = novoProduto.imagem
+                }
+            }
+
+            call.respond(HttpStatusCode.Created, novoProduto)
+        }
+
+        // Atualizar produto existente
+        put("/produtos/{codigo}") {
+            val codigo = call.parameters["codigo"] ?: return@put call.respond(HttpStatusCode.BadRequest, "Código ausente")
+            val produtoAtualizado = call.receive<Produto>()
+
+            val linhasAtualizadas = transaction {
+                Produtos.update({ Produtos.codigo eq codigo }) {
+                    it[nome] = produtoAtualizado.nome
+                    it[preco] = produtoAtualizado.preco
+                    it[imagem] = produtoAtualizado.imagem
+                }
+            }
+
+            if (linhasAtualizadas > 0) {
+                call.respond(produtoAtualizado)
             } else {
-                call.respondText("Produto não encontrado", status = HttpStatusCode.NotFound)
+                call.respond(HttpStatusCode.NotFound, "Produto não encontrado")
             }
         }
 
+        // Deletar produto
+        delete("/produtos/{codigo}") {
+            val codigo = call.parameters["codigo"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Código ausente")
+
+            val removido = transaction {
+                Produtos.deleteWhere { Produtos.codigo eq codigo }
+            }
+
+            if (removido > 0) {
+                call.respond(HttpStatusCode.NoContent)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Produto não encontrado")
+            }
+        }
+
+        // Registrar nova venda
         post("/vendas") {
             val venda = call.receive<Venda>()
 
-            // Transforma lista de produtos em string (pode ser JSON futuramente)
             val produtosStr = venda.produtos.joinToString(", ") { it.nome }
 
             transaction {
@@ -58,8 +132,9 @@ fun Application.configureRouting() {
             call.respondText("Venda registrada com sucesso!", status = HttpStatusCode.Created)
         }
 
+        // Listar vendas
         get("/vendas") {
-            val listaDeVendas = transaction {
+            val vendas = transaction {
                 Vendas.selectAll().map {
                     VendaResponse(
                         id = it[Vendas.id],
@@ -69,7 +144,7 @@ fun Application.configureRouting() {
                 }
             }
 
-            call.respond(listaDeVendas)
+            call.respond(vendas)
         }
     }
 }

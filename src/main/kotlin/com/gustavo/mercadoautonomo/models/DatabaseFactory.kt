@@ -1,5 +1,6 @@
 package com.gustavo.mercadoautonomo
 
+import com.gustavo.mercadoautonomo.models.Produtos
 import com.gustavo.mercadoautonomo.models.Vendas
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -16,7 +17,7 @@ object DatabaseFactory {
         )
 
         transaction {
-            SchemaUtils.create(Vendas)
+            SchemaUtils.create(Produtos, Vendas)
         }
     }
 }
