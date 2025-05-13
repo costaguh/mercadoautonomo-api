@@ -61,6 +61,11 @@ fun Application.configureRouting() {
         post("/produtos") {
             val novoProduto = call.receive<Produto>()
 
+            if (novoProduto.codigo.isBlank() || novoProduto.nome.isBlank()) {
+                call.respond(HttpStatusCode.BadRequest, "Dados incompletos do produto.")
+                return@post
+            }
+
             val existe = transaction {
                 Produtos.select { Produtos.codigo eq novoProduto.codigo }.count() > 0
             }
