@@ -8,16 +8,16 @@ data class Produto(
     val codigo: String,
     val nome: String,
     val preco: Double,
-    val imagem: String,
-    val quantidade: Int
+    val quantidade: Int,          // novo
+    val imagem: String = ""       // default, para desserializar quando não vier no JSON
 )
 
 object Produtos : Table("produtos") {
-    val codigo = varchar("codigo", 50)
-    val nome = varchar("nome", 255)
-    val preco = double("preco")
-    val imagem = varchar("imagem", 255)
-    val quantidade = integer("quantidade")
+    val codigo     = varchar("codigo", 50)
+    val nome       = varchar("nome", 255)
+    val preco      = double("preco")
+    val quantidade = integer("quantidade")  // nova coluna
+    val imagem     = varchar("imagem", 255)
 
     override val primaryKey = PrimaryKey(codigo)
 }
